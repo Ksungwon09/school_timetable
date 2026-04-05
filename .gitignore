@@ -1,56 +1,16 @@
-# flutter related build output and artifacts
+# Ignore all build output
+build/
 .dart_tool/
 .packages
-build/
 .pub-cache/
 .pub/
 
-# android related
+# Exception: allow committed release APK
+!release/school_timetable.apk
+
+# Android related
 android/.gradle/
 android/app/build/
-android/app/app.iml
 android/local.properties
-android/project.properties
 
-# ios related
-ios/Flutter/App.framework
-ios/Flutter/Flutter.framework
-ios/Flutter/Flutter.podspec
-ios/Flutter/Generated.xcconfig
-ios/Flutter/app.flx
-ios/Flutter/app.zip
-ios/Flutter/flutter_assets/
-ios/Pods/
-
-# web related
-web/dist/
-
-# macos related
-macos/Flutter/ephemeral/
-macos/Pods/
-macos/Runner.xcworkspace/xcuserdata/
-macos/Runner.xcworkspace/xcshareddata/
-macos/Runner.xcodeproj/xcuserdata/
-macos/Runner.xcodeproj/xcshareddata/
-
-# windows related
-windows/flutter/ephemeral/
-windows/runner/Release/
-windows/runner/Debug/
-
-# linux related
-linux/flutter/ephemeral/
-
-# JetBrains IDEA / Android Studio
-.idea/
-*.iml
-*.iws
-
-# Visual Studio Code
-.vscode/
-
-# Other
-*.log
-
-# Mac
-.DS_Store
+# ... (other standard rules)

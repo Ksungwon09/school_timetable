@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:home_widget/home_widget.dart';
 import '../models.dart';
 import '../api_service.dart';
+import 'search_screen.dart';
 
 class TimetableScreen extends StatefulWidget {
   final School school;
@@ -47,20 +49,48 @@ class _TimetableScreenState extends State<TimetableScreen> {
         _timetable = timetable;
         _isLoading = false;
       });
-      _saveToWidget(timetable);
+      _saveDataAndWidget(timetable);
     }
   }
 
-  Future<void> _saveToWidget(List<Timetable> timetable) async {
-    // Group timetable by date, then period to format a summary string or JSON for the widget
-    if (timetable.isEmpty) return;
+  Future<void> _saveDataAndWidget(List<Timetable> timetable) async {
+    // Save to SharedPreferences for app reopening
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('schoolName', widget.school.schoolName);
+    await prefs.setString('schoolCode', widget.school.schoolCode);
+    await prefs.setString('eduCode', widget.school.educationOfficeCode);
+    await prefs.setString('grade', widget.grade);
+    await prefs.setString('department', widget.department);
+    await prefs.setString('className', widget.className);
 
-    // Simple serialization for the widget
-    final widgetData = timetable.map((e) => '${e.date}|${e.period}|${e.subject}').join(';;');
+    // Save parameters to widget for its own background refresh
+    await HomeWidget.saveWidgetData<String>('schoolCode', widget.school.schoolCode);
+    await HomeWidget.saveWidgetData<String>('eduCode', widget.school.educationOfficeCode);
+    await HomeWidget.saveWidgetData<String>('grade', widget.grade);
+    await HomeWidget.saveWidgetData<String>('department', widget.department);
+    await HomeWidget.saveWidgetData<String>('className', widget.className);
 
-    await HomeWidget.saveWidgetData<String>('timetable_data', widgetData);
-    await HomeWidget.saveWidgetData<String>('school_info', '${widget.school.schoolName} ${widget.grade}-${widget.className}');
+    await HomeWidget.saveWidgetData<String>('school_info', '${widget.school.schoolName}\n${widget.grade}-${widget.className}');
+
+    if (timetable.isNotEmpty) {
+      final widgetData = timetable.map((e) => '${e.date}|${e.period}|${e.subject}').join(';;');
+      await HomeWidget.saveWidgetData<String>('timetable_data', widgetData);
+    }
+
     await HomeWidget.updateWidget(androidName: 'TimetableWidgetProvider');
+  }
+
+  void _changeClass() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Clear all saved data
+
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => SearchScreen()),
+        (route) => false,
+      );
+    }
   }
 
   @override
@@ -79,6 +109,13 @@ class _TimetableScreenState extends State<TimetableScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('${widget.school.schoolName} Timetable'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            tooltip: 'Change Class',
+            onPressed: _changeClass,
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
